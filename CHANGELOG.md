@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+- Android: disabling `passkeysEnabled` now resets WebAuthn support after it was enabled.
+- iOS: `getCookies` matches cookie paths at slash boundaries instead of arbitrary prefixes.
+- Clarify navigation and JavaScript channel trust boundaries in English and Japanese, and document app setup requirements.
+
 - Add `WebViewSettings.passkeysEnabled` to enable WebAuthn / passkeys on Android
   (`WebSettingsCompat.setWebAuthenticationSupport`). iOS needs no setting; the app must have the
   Associated Domains `webcredentials` entitlement.

@@ -114,13 +114,21 @@ final class AdvancedWebView: NSObject, FlutterPlatformView {
   func cookies(for url: URL) async -> [CookieMessage] {
     let all = await webView.configuration.websiteDataStore.httpCookieStore.allCookies()
     let host = url.host?.lowercased() ?? ""
-    let path = url.path.isEmpty ? "/" : url.path
+    // URL.path can strip a trailing slash; cookie matching needs the request path verbatim.
+    let requestPath =
+      URLComponents(url: url, resolvingAgainstBaseURL: false)?.percentEncodedPath ?? ""
+    let path = requestPath.isEmpty ? "/" : requestPath
     let isSecureScheme = url.scheme?.lowercased() == "https"
     return all.filter { cookie in
       let domain = cookie.domain.lowercased()
       let bare = domain.hasPrefix(".") ? String(domain.dropFirst()) : domain
       let hostMatches = host == bare || (domain.hasPrefix(".") && host.hasSuffix("." + bare))
-      return hostMatches && path.hasPrefix(cookie.path) && (!cookie.isSecure || isSecureScheme)
+      let cookiePath = cookie.path
+      let pathMatches =
+        path == cookiePath
+        || (path.hasPrefix(cookiePath)
+          && (cookiePath.hasSuffix("/") || path.hasPrefix(cookiePath + "/")))
+      return hostMatches && pathMatches && (!cookie.isSecure || isSecureScheme)
     }.map { cookie in
       CookieMessage(
         name: cookie.name,

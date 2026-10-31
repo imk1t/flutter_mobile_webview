@@ -66,10 +66,12 @@ class AdvancedWebViewController {
   final WebResourceErrorCallback? onWebResourceError;
 
   /// Called for main-frame navigations started by the page (links, forms,
-  /// `window.location`, redirects). Loads started by this controller
+  /// `window.location`, redirects). Android does not report POST requests.
+  /// Loads started by this controller
   /// ([loadUrl], [loadHtmlString], [reload], [goBack], [goForward]) are not
-  /// reported. On Android an allowed navigation is re-issued as a GET, so POST
-  /// bodies and redirects are not preserved.
+  /// reported. On Android an allowed navigation is re-issued as a GET, so the original
+  /// redirect flow and request metadata may change. Callback or platform-channel
+  /// errors allow navigation; this is not a complete network filter.
   final NavigationRequestCallback? onNavigationRequest;
 
   /// Called when the page asks for a new window (`window.open`, links with

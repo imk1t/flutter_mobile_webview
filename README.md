@@ -22,11 +22,36 @@ For design decisions (such as why Pigeon was chosen), see
 
 On iOS, both Swift Package Manager and CocoaPods are supported. The plugin builds with
 either, depending on your Flutter setting (`flutter config --enable-swift-package-manager` /
-`--no-enable-swift-package-manager`); no extra setup is needed in your app.
+`--no-enable-swift-package-manager`); no plugin-specific manual linking is needed. Configure your app requirements below.
+
+## Installation
+
+Before the first release, use the Git dependency below. After publication on pub.dev,
+use `flutter pub add advanced_webview` instead.
+
+```yaml
+dependencies:
+  advanced_webview:
+    git:
+      url: https://github.com/imk1t/advanced_webview.git
+```
+
+Requires Flutter 3.47.8+ (Dart 3.13.7+). Android devices need API 24+; Android builds
+need compileSdk 36 and JDK 17. iOS devices and the app deployment target must be
+18.0+; builds need Xcode with an iOS SDK that supports that target.
+Add this directly under `<manifest>` in your app's `android/app/src/main/AndroidManifest.xml`:
+
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+```
+
+See the [getting-started guide](https://imk1t.github.io/advanced_webview/guide/getting-started) for platform setup.
 
 ## Usage
 
 ```dart
+import 'package:advanced_webview/advanced_webview.dart';
+
 final controller = AdvancedWebViewController(
   javaScriptChannels: {'Bridge': (message) => print(message)},
   onPageFinished: (url) => print('loaded $url'),

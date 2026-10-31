@@ -82,10 +82,14 @@ class AdvancedWebView(
             displayZoomControls = false
             userAgentString = settings.userAgent ?: WebSettings.getDefaultUserAgent(webView.context)
         }
-        if (settings.passkeysEnabled && WebViewFeature.isFeatureSupported(WebViewFeature.WEB_AUTHENTICATION)) {
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_AUTHENTICATION)) {
             WebSettingsCompat.setWebAuthenticationSupport(
                 webView.settings,
-                WebSettingsCompat.WEB_AUTHENTICATION_SUPPORT_FOR_APP,
+                if (settings.passkeysEnabled) {
+                    WebSettingsCompat.WEB_AUTHENTICATION_SUPPORT_FOR_APP
+                } else {
+                    WebSettingsCompat.WEB_AUTHENTICATION_SUPPORT_NONE
+                },
             )
         }
         webView.setBackgroundColor(if (settings.transparentBackground) Color.TRANSPARENT else Color.WHITE)

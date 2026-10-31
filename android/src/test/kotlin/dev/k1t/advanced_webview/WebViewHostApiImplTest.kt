@@ -6,6 +6,8 @@ import android.os.Looper
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.widget.FrameLayout
+import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewFeature
 import io.flutter.plugin.common.BinaryMessenger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
@@ -17,6 +19,7 @@ import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.mockStatic
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.robolectric.RobolectricTestRunner
@@ -136,6 +139,45 @@ class WebViewHostApiImplTest {
     }
 
     @Test
+    fun passkeysCanBeEnabledAndDisabledOnTheSameWebView() {
+        mockStatic(WebViewFeature::class.java).use { features ->
+            features.`when`<Boolean> { WebViewFeature.isFeatureSupported(WebViewFeature.WEB_AUTHENTICATION) }
+                .thenReturn(true)
+            mockStatic(WebSettingsCompat::class.java).use { compat ->
+                hostApi.create(params(webViewId = 1, settings = settings(passkeysEnabled = true)))
+                val nativeSettings = registry.get(1).webView.settings
+                compat.verify {
+                    WebSettingsCompat.setWebAuthenticationSupport(
+                        nativeSettings,
+                        WebSettingsCompat.WEB_AUTHENTICATION_SUPPORT_FOR_APP,
+                    )
+                }
+                compat.clearInvocations()
+                hostApi.updateSettings(1, settings(passkeysEnabled = false))
+                compat.verify {
+                    WebSettingsCompat.setWebAuthenticationSupport(
+                        nativeSettings,
+                        WebSettingsCompat.WEB_AUTHENTICATION_SUPPORT_NONE,
+                    )
+                }
+            }
+        }
+    }
+
+    @Test
+    fun unsupportedWebAuthenticationRemainsANoOp() {
+        mockStatic(WebViewFeature::class.java).use { features ->
+            features.`when`<Boolean> { WebViewFeature.isFeatureSupported(WebViewFeature.WEB_AUTHENTICATION) }
+                .thenReturn(false)
+            mockStatic(WebSettingsCompat::class.java).use { compat ->
+                hostApi.create(params(webViewId = 1, settings = settings(passkeysEnabled = true)))
+                hostApi.updateSettings(1, settings(passkeysEnabled = false))
+                compat.verifyNoInteractions()
+            }
+        }
+    }
+
+    @Test
     fun javaScriptChannelsForwardMessagesToDart() {
         hostApi.create(params(webViewId = 3, channels = listOf("Echo")))
         val channel = shadowOf(registry.get(3).webView).getJavascriptInterface("Echo")
@@ -211,13 +253,14 @@ class WebViewHostApiImplTest {
         supportZoom: Boolean = true,
         transparentBackground: Boolean = false,
         userAgent: String? = null,
+        passkeysEnabled: Boolean = false,
     ) = WebViewSettingsMessage(
         javaScriptEnabled = javaScriptEnabled,
         mediaPlaybackRequiresUserGesture = true,
         allowsInlineMediaPlayback = false,
         supportZoom = supportZoom,
         transparentBackground = transparentBackground,
-        passkeysEnabled = false,
+        passkeysEnabled = passkeysEnabled,
         userAgent = userAgent,
     )
 }

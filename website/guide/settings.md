@@ -38,3 +38,5 @@ Passkeys work only for sites whose domain is associated with your app.
   supported inside a WebView.
 
 See [Platform API mapping](./api-mapping#settings) for the native API behind each setting.
+
+On Android, `updateSettings` can enable and disable passkeys on a WebView that supports WebAuthn.

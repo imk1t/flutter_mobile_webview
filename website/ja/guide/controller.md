@@ -50,7 +50,7 @@ AdvancedWebViewController(
 );
 ```
 
-## ファイルのアップロード
+## ファイルのアップロード {#file-uploads}
 
 `<input type="file">` は、Dart 側のコードなしで両プラットフォームで動作します。
 

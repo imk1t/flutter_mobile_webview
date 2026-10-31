@@ -22,7 +22,7 @@ await controller.updateSettings(const WebViewSettings(javaScriptEnabled: false))
 
 「生成時のみ」の設定はネイティブビューの生成時に適用され、そのプラットフォームでは `updateSettings` で変更しても無視されます。
 
-## パスキー（WebAuthn）
+## パスキー（WebAuthn） {#passkeys-webauthn}
 
 パスキーは、ドメインがアプリと関連付けられたサイトでのみ使えます。
 
@@ -34,3 +34,5 @@ await controller.updateSettings(const WebViewSettings(javaScriptEnabled: false))
 - 外部 IdP（Google など）のパスキーと `mediation: "conditional"` は WebView 内では使えません。
 
 各設定が使うネイティブ API は[ネイティブ API 対応表](./api-mapping#設定)を参照してください。
+
+Android の WebAuthn 対応 WebView では、`updateSettings` でパスキーを有効・無効に切り替えられます。

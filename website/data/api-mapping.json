@@ -531,8 +531,8 @@
           "WebView.loadUrl(String)"
         ],
         "note": {
-          "en": "Android needs a synchronous answer, so the navigation is cancelled, Dart is asked, and an allowed one is re-issued as a GET (POST bodies and redirects are not preserved).",
-          "ja": "Android は同期的な応答が必要なため、遷移をいったんキャンセルして Dart に問い合わせ、許可された場合は GET として再実行します(POST の本文やリダイレクトは保持されません)。"
+          "en": "POST requests are not reported. Other intercepted navigations are cancelled, Dart is asked, and allowed ones are re-issued as GET; redirects and request metadata may change. Callback errors allow navigation.",
+          "ja": "POST は通知されません。他の判定対象の遷移はいったんキャンセルして Dart に問い合わせ、許可時は GET で再実行するため、リダイレクトやリクエスト情報が変わる場合があります。コールバック失敗時は許可します。"
         }
       },
       "ios": {
@@ -767,11 +767,12 @@
         "status": "supported",
         "apis": [
           "WebViewFeature.isFeatureSupported(WEB_AUTHENTICATION)",
-          "WebSettingsCompat.setWebAuthenticationSupport(WEB_AUTHENTICATION_SUPPORT_FOR_APP)"
+          "WebSettingsCompat.setWebAuthenticationSupport(WEB_AUTHENTICATION_SUPPORT_FOR_APP)",
+          "WebSettingsCompat.setWebAuthenticationSupport(WEB_AUTHENTICATION_SUPPORT_NONE)"
         ],
         "note": {
-          "en": "Needs Digital Asset Links for the site's domain. Ignored when the installed WebView does not support WebAuthn.",
-          "ja": "サイトのドメインに Digital Asset Links の設定が必要です。インストール済みの WebView が WebAuthn に対応していない場合は無視されます。"
+          "en": "Needs Digital Asset Links for the site's domain. Updates select FOR_APP when enabled and NONE when disabled. Ignored when the installed WebView does not support WebAuthn.",
+          "ja": "サイトのドメインに Digital Asset Links の設定が必要です。更新時は有効なら FOR_APP、無効なら NONE を設定します。インストール済みの WebView が WebAuthn に対応していない場合は無視されます。"
         }
       },
       "ios": {

@@ -53,3 +53,16 @@ Scripts only affect pages loaded after they are added. `mainFrameOnly` defaults 
 
 Android needs a WebView that supports `DOCUMENT_START_SCRIPT` (the system WebView on current
 devices does); the plugin wraps the source so `mainFrameOnly` and `atDocumentEnd` behave like iOS.
+
+## Channel trust boundary
+
+Channels are exposed to every frame, including iframes. Android uses `addJavascriptInterface`;
+iOS injects the channel shim with `forMainFrameOnly: false`.
+Dart receives the channel name and string message, with no sender origin or frame information.
+`UserScript.mainFrameOnly` controls user scripts only; it does not restrict channel exposure.
+
+Load only trusted content, including its iframes, in a WebView with channels. Validate message
+formats and requested operations; do not authorize privileged actions or return credentials based
+on a message alone. JavaScript is enabled by default. If it is unnecessary, use
+`javaScriptEnabled: false` and omit channel registration.
+The navigation delegate also has [limitations](./navigation#security-boundary).

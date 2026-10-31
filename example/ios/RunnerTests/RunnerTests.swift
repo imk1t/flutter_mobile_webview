@@ -114,6 +114,29 @@ final class RunnerTests: XCTestCase {
     XCTAssertNil(null)
   }
 
+  func testCookiePathsMatchOnlyAtPathBoundaries() async throws {
+    let (hostApi, registry, _) = makeHostApi()
+    try hostApi.create(params: params(webViewId: 1))
+    let instance = try registry.get(1)
+    let store = instance.webView.configuration.websiteDataStore.httpCookieStore
+    let cookies = [("root", "/"), ("exact", "/account"), ("slash", "/account/")].map { name, path in
+      HTTPCookie(properties: [.name: name, .value: "1", .domain: "path-match.test", .path: path])!
+    }
+    for cookie in cookies { await store.setCookie(cookie) }
+    let cases: [(String, Set<String>)] = [
+      ("", ["root"]), ("/", ["root"]), ("/account", ["root", "exact"]),
+      ("/account/", ["root", "exact", "slash"]),
+      ("/account/child", ["root", "exact", "slash"]),
+      ("/account%2Fchild", ["root"]),
+      ("/accounting", ["root"]), ("/accounting/child", ["root"]),
+    ]
+    for (path, expected) in cases {
+      let result = try await hostApi.getCookies(webViewId: 1, url: "https://path-match.test" + path)
+      XCTAssertEqual(Set(result.map(\.name)), expected, "Path: \(path)")
+    }
+    for cookie in cookies { await store.deleteCookie(cookie) }
+  }
+
   func testFactoryReturnsTheExistingInstance() throws {
     let (hostApi, registry, _) = makeHostApi()
     try hostApi.create(params: params(webViewId: 5))

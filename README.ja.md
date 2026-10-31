@@ -20,11 +20,35 @@ Android と iOS に絞った、Pigeon ベースの型安全な Flutter WebView �
 
 iOS は Swift Package Manager と CocoaPods の両方に対応しています。
 Flutter の設定（`flutter config --enable-swift-package-manager` /
-`--no-enable-swift-package-manager`）に応じてどちらでもビルドされ、利用側で追加の作業は不要です。
+`--no-enable-swift-package-manager`）に応じてどちらでもビルドされ、プラグイン独自の手動リンク設定は不要です。アプリの要件は後述の手順に従って設定してください。
+
+## インストール
+
+初回公開前は Git リポジトリから追加してください。pub.dev 公開後は `flutter pub add advanced_webview` を使用できます。
+
+```yaml
+dependencies:
+  advanced_webview:
+    git:
+      url: https://github.com/imk1t/advanced_webview.git
+```
+
+Flutter 3.47.8 以降（Dart 3.13.7 以降）が必要です。Android は実行時 API 24 以降、
+ビルドには compileSdk 36 と JDK 17 が必要です。iOS は実行時とアプリの deployment target が 18.0 以降で、
+ビルドには対応する iOS SDK を備えた Xcode が必要です。
+Android アプリの `android/app/src/main/AndroidManifest.xml` の `<manifest>` 直下に追加します。
+
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+```
+
+詳細なプラットフォーム設定は[導入ガイド](https://imk1t.github.io/advanced_webview/ja/guide/getting-started)を参照してください。
 
 ## 使い方
 
 ```dart
+import 'package:advanced_webview/advanced_webview.dart';
+
 final controller = AdvancedWebViewController(
   javaScriptChannels: {'Bridge': (message) => print(message)},
   onPageFinished: (url) => print('loaded $url'),

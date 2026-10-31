@@ -11,7 +11,7 @@
 
 iOS は Swift Package Manager と CocoaPods の両方に対応しています。
 Flutter の設定（`flutter config --enable-swift-package-manager` /
-`--no-enable-swift-package-manager`）に応じてどちらでもビルドされ、利用側で追加の作業は不要です。
+`--no-enable-swift-package-manager`）に応じてどちらでもビルドされ、プラグイン独自の手動リンク設定は不要です。アプリの要件は後述の手順に従って設定してください。
 
 ## インストール
 
@@ -23,6 +23,27 @@ dependencies:
     git:
       url: https://github.com/imk1t/advanced_webview.git
 ```
+
+## プラットフォームの準備
+
+- Flutter 3.47.8 以降と Dart 3.13.7 以降を使用してください。pubspec の Dart 制約も満たす必要があります。
+- Android: 実行時は API 24 以降。ビルド時は compileSdk 36、JDK 17 と互換性のある Gradle/AGP が必要です。
+  プラグインは AGP 9.1.0 を使用します。
+- iOS: 実行時とアプリの deployment target は 18.0 以降。対応する iOS SDK を含む Xcode を使用してください。
+  Xcode の Runner ターゲットの Minimum Deployments を設定し、CocoaPods の Podfile がある場合は
+  `platform :ios, '18.0'` も設定してください。
+
+Android アプリの `android/app/src/main/AndroidManifest.xml` の `<manifest>` 直下に追加してください。
+デバッグ用 Manifest だけに宣言すると release ビルドには適用されません。
+
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+```
+
+HTTPS を使用してください。HTTP の例外が必要な場合は Android の Network Security Config と iOS の ATS を
+アプリの用途に合わせて設定してください。プラグインは通信制限や証明書エラーを回避しません。
+ファイル選択時の Info.plist キーは[Controller](./controller#file-uploads)、
+passkeys のドメイン関連付けは[設定](./settings#passkeys-webauthn)を参照してください。
 
 ## 最小の例
 
