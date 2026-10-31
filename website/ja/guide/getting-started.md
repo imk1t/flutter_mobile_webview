@@ -15,14 +15,13 @@ Flutter の設定（`flutter config --enable-swift-package-manager` /
 
 ## インストール
 
-まだ pub.dev には公開していません。最初のリリースまでは Git リポジトリを直接指定してください。
+[pub.dev](https://pub.dev/packages/advanced_webview) から追加します。
 
-```yaml
-dependencies:
-  advanced_webview:
-    git:
-      url: https://github.com/imk1t/advanced_webview.git
+```sh
+flutter pub add advanced_webview
 ```
+
+Flutter 3.47.8 以降が必要です。
 
 ## 最小の例
 

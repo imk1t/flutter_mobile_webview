@@ -17,14 +17,13 @@ either, depending on your Flutter setting (`flutter config --enable-swift-packag
 
 ## Installation
 
-The package is not on pub.dev yet. Until the first release, depend on the Git repository:
+Add the package from [pub.dev](https://pub.dev/packages/advanced_webview):
 
-```yaml
-dependencies:
-  advanced_webview:
-    git:
-      url: https://github.com/imk1t/advanced_webview.git
+```sh
+flutter pub add advanced_webview
 ```
+
+It needs Flutter 3.47.8 or later.
 
 ## A minimal example
 

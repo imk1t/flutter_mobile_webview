@@ -1,6 +1,7 @@
-# Publishes to pub.dev when a version tag (e.g. v0.1.0) is pushed.
+# Publishes unpublished version tags to pub.dev, then creates a GitHub Release.
 # Requires automated publishing to be enabled for this repository on pub.dev
 # (package admin page > Automated publishing > GitHub Actions, tag pattern `v{{version}}`).
+# The very first release must be published manually (`flutter pub publish`) beforehand.
 name: Publish to pub.dev
 
 on:
@@ -13,12 +14,73 @@ jobs:
     runs-on: ubuntu-latest
     environment: pub.dev
     permissions:
+      contents: read
       id-token: write # OIDC token for pub.dev
     steps:
       - uses: actions/checkout@v7.0.1
-      # Configures the pub.dev OIDC credentials.
+        with:
+          fetch-depth: 0 # needed to check that the tag is on main
+      - name: Check the tag matches this commit
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version="$(sed -n 's/^version: *//p' pubspec.yaml)"
+          if [ "$tag" != "$version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match pubspec.yaml version $version"
+            exit 1
+          fi
+          if ! grep -Eq "^## ${tag//./\\.}( |$)" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no '## $tag' section"
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::Tag $GITHUB_REF_NAME is not on main"
+            exit 1
+          fi
+      - name: Check whether this version is already on pub.dev
+        id: pub-dev
+        run: |
+          package="$(sed -n 's/^name: *//p' pubspec.yaml)"
+          version="${GITHUB_REF_NAME#v}"
+          published="$(bash .github/scripts/pub-dev-version-published.sh "$package" "$version")"
+          echo "published=$published" >> "$GITHUB_OUTPUT"
+          if [ "$published" = true ]; then
+            echo "$package $version is already published; skipping pub.dev upload"
+          fi
+      # Configures the pub.dev OIDC credentials only when an upload is needed.
       - uses: dart-lang/setup-dart@v1.8.1
+        if: steps.pub-dev.outputs.published == 'false'
       - uses: jdx/mise-action@v5.2.5
       - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
       - run: flutter pub publish --dry-run
+        if: steps.pub-dev.outputs.published == 'false'
       - run: flutter pub publish --force
+        if: steps.pub-dev.outputs.published == 'false'
+
+  # Runs after pub.dev accepted the package or the exact version was already present.
+  # Kept separate so the write token and pub.dev OIDC token are never in the same job.
+  github-release:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Extract release notes from CHANGELOG.md
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          awk -v h="## $tag" '
+            $0 == h || index($0, h " ") == 1 { found = 1; next }
+            found && /^## / { exit }
+            found { print }
+          ' CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+          test -s "$RUNNER_TEMP/notes.md"
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          prerelease=""
+          case "$GITHUB_REF_NAME" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" --verify-tag $prerelease \
+            --title "$GITHUB_REF_NAME" --notes-file "$RUNNER_TEMP/notes.md"
